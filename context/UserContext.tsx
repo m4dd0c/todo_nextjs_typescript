@@ -6,32 +6,30 @@ import { ReactNode, createContext, useEffect, useState } from "react";
 export const UserContext = createContext<IContext | null>(null);
 
 const ContextState = ({ children }: { children: ReactNode }) => {
-  const [tasks, setTasks] = useState<ITask[]>(getLocalStorage());
+  const [tasks, setTasks] = useState<ITask[]>([]);
   // add task function
   const addTask = (text: string) => {
     if (text.trim().length <= 0) return;
-    setTasks([
-      ...tasks,
-      { id: Date.now(), text: text.trim(), completed: false },
-    ]);
-    return;
+    const task: ITask = { id: Date.now(), text: text.trim(), completed: false };
+    setTasks((prev) => [...prev, task]);
   };
   // remove task function
   const removeTask = (id: number) => {
-    const newTasks = tasks.filter((task) => task.id !== id);
-    setTasks(newTasks);
+    setTasks((prev) => prev.filter((task) => task.id !== id));
   };
   // toggle Completed function
   const toggleCompleted = (id: number) => {
-    tasks.forEach(
-      (task) => task.id === id && (task.completed = !task.completed)
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
     );
-    const newTasks = tasks.map((task) => {
-      task.id === id && task.completed === !task.completed;
-      return task;
-    });
-    setTasks(newTasks);
   };
+
+  useEffect(() => {
+    const savedTasks = getLocalStorage();
+    if (savedTasks) setTasks(savedTasks);
+  }, []);
 
   useEffect(() => {
     setLocalStorage(tasks);
